@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}{{ shelter.name }} — SHELTERLINK X{% endblock %}
+
+{% block content %}
+<!-- Shelter Header -->
+<div class="row align-items-center mb-4">
+  <div class="col-md-7 mb-3 mb-md-0">
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <span class="badge bg-secondary">{{ shelter.shelter_code }}</span>
+      <span class="status-pill 
+        {% if shelter.status == 'Active' %}active
+        {% elif shelter.status == 'Approaching Capacity' %}approaching
+        {% elif shelter.status == 'Full' %}full
+        {% else %}closed{% endif %}">
+        <span class="dot"></span> {{ shelter.status }}
+      </span>
+      <span class="text-muted small">Sector: <strong>{{ shelter.location_name }}</strong></span>
+    </div>
+    <h2 class="fw-bold text-dark mb-0">{{ shelter.name }}</h2>
+  </div>
+  <div class="col-md-5 text-md-end">
+    {% if current_user.can_manage_shelters() %}
+    <a href="{{ url_for('shelters.edit', shelter_id=shelter.id) }}" class="btn btn-outline-secondary me-2">
+      <i class="bi bi-pencil me-1"></i> Edit Specifications
+    </a>
+    {% endif %}
+    <a href="{{ url_for('shelters.index') }}" class="btn btn-outline-primary">
+      <i class="bi bi-arrow-left me-1"></i> Back to Inventory
+    </a>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Capacity Formula Breakdown Card -->
+  <div class="col-12 col-lg-8">
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-pie-chart-fill text-primary me-2"></i> Capacity Telemetry & Live Formula</span>
+        <span class="text-muted small">Updated: {{ shelter.updated_at.strftime('%Y-%m-%d %H:%M UTC') if shelter.updated_at else 'N/A' }}</span>
+      </div>
+      <div class="card-body p-4">
+        <div class="row g-3 text-center mb-4">
+          <div class="col-3">
+            <div class="p-3 bg-light rounded-3">
+              <div class="text-muted small fw-semibold">TOTAL CAPACITY</div>
+              <div class="fs-2 fw-bold text-dark mt-1">{{ shelter.total_capacity }}</div>
+              <div class="small text-muted">Authorized beds</div>
+            </div>
+          </div>
+          <div class="col-3">
+            <div class="p-3 bg-light rounded-3">
+              <div class="text-muted small fw-semibold">CURRENT OCCUPANCY</div>
+              <div class="fs-2 fw-bold text-primary mt-1">{{ shelter.current_occupancy }}</div>
+              <div class="small text-muted">Checked-in persons</div>
+            </div>
+          </div>
+          <div class="col-3">
+            <div class="p-3 bg-light rounded-3">
+              <div class="text-muted small fw-semibold">RESERVED CAPACITY</div>
+              <div class="fs-2 fw-bold text-warning text-dark mt-1">{{ shelter.reserved_capacity }}</div>
+              <div class="small text-muted">Confirmed transit</div>
+            </div>
+          </div>
+          <div class="col-3">
+            <div class="p-3 bg-success-subtle rounded-3">
+              <div class="text-success small fw-bold">AVAILABLE HEADROOM</div>
+              <div class="fs-2 fw-bold text-success mt-1">{{ shelter.available_capacity }}</div>
+              <div class="small text-success">Free beds remaining</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-3 bg-light border rounded-3 mb-3">
+          <div class="small fw-semibold text-secondary mb-1">
+            <i class="bi bi-calculator me-1"></i> Operational Headroom Calculation Formula:
+          </div>
+          <div class="font-monospace small text-dark">
+            Available Capacity = Total ({{ shelter.total_capacity }}) − Occupancy ({{ shelter.current_occupancy }}) − Reserved ({{ shelter.reserved_capacity }}) = <strong>{{ shelter.available_capacity }} beds</strong>
+          </div>
+        </div>
+
+        <div>
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="small fw-semibold text-muted">Facility Utilization Ratio:</span>
+            <span class="small fw-bold">{{ shelter.utilization_percentage }}% Occupied</span>
+          </div>
+          <div class="progress" style="height: 12px;">
+            <div class="progress-bar {% if shelter.utilization_percentage >= 85 %}bg-danger{% elif shelter.utilization_percentage >= 70 %}bg-warning{% else %}bg-success{% endif %}" 
+                 style="width: {{ shelter.utilization_percentage }}%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Demand Forecast & Risk Card -->
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-cpu text-info me-2"></i> 6-Hour AI Demand Forecast & Risk Assessment</span>
+        <span class="badge bg-{{ forecast.risk_badge }} fs-6">{{ forecast.risk_category }} OVERCROWDING RISK</span>
+      </div>
+      <div class="card-body p-4">
+        <p class="text-secondary mb-3">{{ forecast.risk_description }}</p>
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <div class="border rounded p-3">
+              <span class="small text-muted d-block">Incoming Demand (6h):</span>
+              <strong class="fs-4 text-primary">+{{ forecast.forecasted_incoming }} survivors</strong>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="border rounded p-3">
+              <span class="small text-muted d-block">Estimated Departures (6h):</span>
+              <strong class="fs-4 text-secondary">-{{ forecast.estimated_departures }} persons</strong>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="border rounded p-3">
+              <span class="small text-muted d-block">Projected Utilization (6h):</span>
+              <strong class="fs-4 text-{{ forecast.risk_badge }}">{{ forecast.projected_utilization_pct }}%</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="small text-muted">
+          <strong>Key AI Telemetry Drivers:</strong>
+          <ul class="mb-0 mt-1 ps-3">
+            {% for factor in forecast.key_factors %}
+            <li>{{ factor }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="small text-muted mt-2">
+          <em>Predictive Model: {{ forecast.used_model }}</em>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Operational Actions & Facilities Sidebar -->
+  <div class="col-12 col-lg-4">
+    <!-- Quick Occupancy Update Form -->
+    {% if current_user.can_manage_shelters() %}
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-header bg-white fw-bold">
+        <i class="bi bi-arrow-left-right text-primary me-2"></i> Quick Occupancy Adjustment
+      </div>
+      <div class="card-body p-3">
+        <form method="POST" action="{{ url_for('shelters.update_occupancy', shelter_id=shelter.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Operation Type</label>
+            <select name="change_type" class="form-select form-select-sm" required>
+              <option value="arrival">Survivor Arrival (+ Add to Occupancy)</option>
+              <option value="departure">Survivor Departure (- Subtract from Occupancy)</option>
+              <option value="set">Direct Absolute Count (Reset Occupancy)</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Count (Persons)</label>
+            <input type="number" name="count" class="form-control form-control-sm" min="1" max="1000" placeholder="e.g. 5" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Operational Reason</label>
+            <input type="text" name="reason" class="form-control form-control-sm" placeholder="e.g. Bus transfer arrival" required>
+          </div>
+
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" name="allow_override" value="1" id="overrideCheck">
+            <label class="form-check-label small text-muted" for="overrideCheck">
+              Authorized Capacity Override (If exceeding limit)
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-sm btn-primary-custom w-100">
+            <i class="bi bi-check-circle me-1"></i> Commit Occupancy Telemetry
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Essential Facilities & Details -->
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-white fw-bold">
+        <i class="bi bi-info-circle text-primary me-2"></i> Facilities & Contacts
+      </div>
+      <div class="card-body p-3">
+        <ul class="list-group list-group-flush small mb-3">
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Wheelchair Accessibility Ramps</span>
+            {% if shelter.has_accessibility_ramps %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Potable Drinking Water</span>
+            {% if shelter.has_drinking_water %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-danger">No</span>{% endif %}
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Emergency Food Supply</span>
+            {% if shelter.has_food_supply %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-danger">No</span>{% endif %}
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Medical Support Center</span>
+            {% if shelter.has_medical_support %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Sanitation / Restrooms</span>
+            {% if shelter.has_sanitation %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-danger">No</span>{% endif %}
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Family Partition Rooms</span>
+            {% if shelter.has_family_rooms %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Backup Power Generator</span>
+            {% if shelter.has_power_backup %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}
+          </li>
+        </ul>
+
+        <div class="small border-top pt-2">
+          <p class="mb-1 text-muted"><strong>Contact Person:</strong> {{ shelter.contact_person or 'Site Coordinator' }}</p>
+          <p class="mb-1 text-muted"><strong>Emergency Phone:</strong> {{ shelter.contact_phone or '108 / Relief Control' }}</p>
+          <p class="mb-0 text-muted"><strong>Coordinates:</strong> {{ shelter.latitude or 'N/A' }}, {{ shelter.longitude or 'N/A' }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Telemetry History Table -->
+<div class="card shadow-sm border-0 mb-4">
+  <div class="card-header bg-white fw-bold">
+    <i class="bi bi-clock-history text-secondary me-2"></i> Recent Telemetry & Observation History
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle mb-0 small">
+        <thead class="table-light">
+          <tr>
+            <th>Observation Timestamp</th>
+            <th>Total Capacity</th>
+            <th>Recorded Occupancy</th>
+            <th>Incoming Flow</th>
+            <th>Departures</th>
+            <th>Status Recorded</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for h in history %}
+          <tr>
+            <td>{{ h.timestamp.strftime('%Y-%m-%d %H:%M UTC') }}</td>
+            <td>{{ h.total_capacity }}</td>
+            <td class="fw-bold text-primary">{{ h.current_occupancy }}</td>
+            <td>+{{ h.incoming_requests }}</td>
+            <td>-{{ h.departures }}</td>
+            <td><span class="badge bg-light text-dark border">{{ h.shelter_status }}</span></td>
+            <td class="text-muted">{{ h.notes or 'Telemetry log' }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7" class="text-center py-3 text-muted">No telemetry logs recorded yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

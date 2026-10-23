@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}AI Demand Forecasting & Overcrowding Risk — SHELTERLINK X{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-4">
+  <div class="col-md-7 mb-3 mb-md-0">
+    <h2 class="fw-bold mb-1"><i class="bi bi-cpu text-primary me-2"></i> Demand Forecasting & Capacity Pressure Radar</h2>
+    <p class="text-muted small mb-0">Multi-horizon machine learning regression for early warning of shelter overcrowding</p>
+  </div>
+  <div class="col-md-5">
+    <div class="d-flex flex-wrap gap-2 justify-content-md-end align-items-center">
+      <div class="btn-group btn-group-sm" role="group">
+        <a href="{{ url_for('forecasting.index', horizon=1) }}" class="btn {% if horizon_hours == 1 %}btn-primary{% else %}btn-outline-secondary{% endif %}">1h Horizon</a>
+        <a href="{{ url_for('forecasting.index', horizon=3) }}" class="btn {% if horizon_hours == 3 %}btn-primary{% else %}btn-outline-secondary{% endif %}">3h Horizon</a>
+        <a href="{{ url_for('forecasting.index', horizon=6) }}" class="btn {% if horizon_hours == 6 %}btn-primary{% else %}btn-outline-secondary{% endif %}">6h Horizon</a>
+        <a href="{{ url_for('forecasting.index', horizon=12) }}" class="btn {% if horizon_hours == 12 %}btn-primary{% else %}btn-outline-secondary{% endif %}">12h Horizon</a>
+      </div>
+      <a href="{{ url_for('forecasting.evaluate', horizon=horizon_hours) }}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-clipboard2-data me-1"></i> Model Metrics & Evaluation
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Risk Summary KPI Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card shadow-sm border-0 border-start border-4 border-danger p-3">
+      <div class="text-muted small fw-semibold">CRITICAL RISK (&ge;95% OR FULL)</div>
+      <div class="fs-2 fw-bold text-danger mt-1">{{ critical_count }} Shelters</div>
+      <div class="small text-muted">Immediate diversion required</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card shadow-sm border-0 border-start border-4 border-warning p-3">
+      <div class="text-muted small fw-semibold">HIGH PRESSURE (85-95%)</div>
+      <div class="fs-2 fw-bold text-warning text-dark mt-1">{{ high_count }} Shelters</div>
+      <div class="small text-muted">Nearing capacity threshold</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card shadow-sm border-0 border-start border-4 border-info p-3">
+      <div class="text-muted small fw-semibold">MODERATE PRESSURE (70-85%)</div>
+      <div class="fs-2 fw-bold text-info mt-1">{{ moderate_count }} Shelters</div>
+      <div class="small text-muted">Manageable reserve buffer</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card shadow-sm border-0 border-start border-4 border-success p-3">
+      <div class="text-muted small fw-semibold">LOW RISK (&lt;70%)</div>
+      <div class="fs-2 fw-bold text-success mt-1">{{ low_count }} Shelters</div>
+      <div class="small text-muted">Optimal for survivor routing</div>
+    </div>
+  </div>
+</div>
+
+<!-- Shelters Pressure Table -->
+<div class="card shadow-sm border-0 mb-4">
+  <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-activity text-primary me-2"></i> Shelter Pressure Forecasts ({{ horizon_hours }}-Hour Horizon)</span>
+    <span class="badge bg-light text-secondary border">Telemetry-Driven Inference</span>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Shelter</th>
+            <th>Total Capacity</th>
+            <th>Current Occupancy</th>
+            <th>Available</th>
+            <th>Forecasted Inflow (+{{ horizon_hours }}h)</th>
+            <th>Projected Occupancy</th>
+            <th>Risk Classification</th>
+            <th>Model In Use</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in pressure_results %}
+          <tr>
+            <td>
+              <div class="fw-bold text-dark">{{ r.shelter_name }}</div>
+              <div class="small text-muted">{{ r.shelter_code }}</div>
+            </td>
+            <td><strong>{{ r.total_capacity }}</strong> beds</td>
+            <td>
+              <div class="fw-bold">{{ r.current_occupancy }}</div>
+              <div class="small text-muted">{{ r.current_utilization_pct }}% util</div>
+            </td>
+            <td>
+              <span class="badge bg-success-subtle text-success fs-6">{{ r.available_capacity }}</span>
+            </td>
+            <td>
+              <span class="fw-bold text-primary">+{{ r.forecasted_incoming }}</span>
+              <div class="small text-muted">-{{ r.estimated_departures }} est. dep</div>
+            </td>
+            <td>
+              <div class="fw-bold {% if r.projected_utilization_pct >= 95 %}text-danger{% elif r.projected_utilization_pct >= 85 %}text-warning{% endif %}">
+                {{ r.projected_occupancy }} beds ({{ r.projected_utilization_pct }}%)
+              </div>
+              <div class="progress" style="height: 6px; width: 90px;">
+                <div class="progress-bar bg-{{ r.risk_badge }}" style="width: {{ r.projected_utilization_pct }}%;"></div>
+              </div>
+            </td>
+            <td>
+              <span class="badge bg-{{ r.risk_badge }} px-2 py-1">
+                {{ r.risk_category }}
+              </span>
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border small">{{ r.used_model }}</span>
+            </td>
+            <td class="text-end">
+              <a href="{{ url_for('shelters.detail', shelter_id=r.shelter_id) }}" class="btn btn-sm btn-outline-primary">
+                Inspect <i class="bi bi-chevron-right"></i>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

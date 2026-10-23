@@ -1,0 +1,16 @@
+shelter_code,timestamp,total_capacity,current_occupancy,incoming_requests,departures,affected_area,shelter_status
+SHELTER-001,2026-10-12 08:00:00,250,60,4,2,North Coastal Sector,Active
+SHELTER-001,2026-10-12 09:00:00,250,65,7,2,North Coastal Sector,Active
+SHELTER-001,2026-10-12 10:00:00,250,72,9,2,North Coastal Sector,Active
+SHELTER-001,2026-10-12 11:00:00,250,80,12,4,North Coastal Sector,Active
+SHELTER-001,2026-10-12 12:00:00,250,85,8,3,North Coastal Sector,Active
+SHELTER-002,2026-10-12 08:00:00,200,140,5,1,East River Basin,Active
+SHELTER-002,2026-10-12 09:00:00,200,152,14,2,East River Basin,Approaching Capacity
+SHELTER-002,2026-10-12 10:00:00,200,165,15,2,East River Basin,Approaching Capacity
+SHELTER-002,2026-10-12 11:00:00,200,172,10,3,East River Basin,Approaching Capacity
+SHELTER-002,2026-10-12 12:00:00,200,175,6,3,East River Basin,Approaching Capacity
+SHELTER-003,2026-10-12 08:00:00,500,100,5,3,Central Metro Sector,Active
+SHELTER-003,2026-10-12 09:00:00,500,108,10,2,Central Metro Sector,Active
+SHELTER-003,2026-10-12 10:00:00,500,115,9,2,Central Metro Sector,Active
+SHELTER-003,2026-10-12 11:00:00,500,119,6,2,Central Metro Sector,Active
+SHELTER-003,2026-10-12 12:00:00,500,120,4,3,Central Metro Sector,Active

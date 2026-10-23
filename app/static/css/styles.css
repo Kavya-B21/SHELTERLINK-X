@@ -1,0 +1,226 @@
+/* SHELTERLINK X — Emergency Disaster Intelligence Platform Stylesheet */
+:root {
+  --primary-navy: #0f172a;
+  --primary-dark: #1e293b;
+  --accent-teal: #0d9488;
+  --accent-cyan: #0284c7;
+  --accent-blue: #2563eb;
+  --bg-main: #f8fafc;
+  --card-bg: #ffffff;
+  --text-dark: #1e293b;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --warning-amber: #f59e0b;
+  --danger-red: #ef4444;
+  --success-green: #10b981;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-dark);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Navbar */
+.navbar-custom {
+  background-color: var(--primary-navy);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.navbar-brand {
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: #ffffff !important;
+}
+.navbar-brand .brand-badge {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-teal));
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #fff;
+  margin-left: 6px;
+}
+.nav-link {
+  color: #cbd5e1 !important;
+  font-weight: 500;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.85rem !important;
+  transition: all 0.2s;
+  border-radius: 6px;
+}
+.nav-link:hover, .nav-link.active {
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Secondary Sub-nav */
+.subnav-bar {
+  background-color: var(--primary-dark);
+  color: #94a3b8;
+  padding: 0.45rem 1rem;
+  font-size: 0.82rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Cards */
+.card {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  background-color: var(--card-bg);
+}
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.card-header {
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 600;
+  padding: 0.85rem 1.25rem;
+}
+
+/* Stat Cards */
+.stat-card {
+  border-left: 4px solid var(--accent-cyan);
+}
+.stat-card.critical {
+  border-left-color: var(--danger-red);
+}
+.stat-card.warning {
+  border-left-color: var(--warning-amber);
+}
+.stat-card.success {
+  border-left-color: var(--success-green);
+}
+.stat-card .stat-val {
+  font-size: 1.85rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.stat-card .stat-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* Badges */
+.badge-active { background-color: #dcfce7; color: #15803d; }
+.badge-warning { background-color: #fef3c7; color: #b45309; }
+.badge-danger { background-color: #fee2e2; color: #b91c1c; }
+.badge-secondary { background-color: #f1f5f9; color: #475569; }
+
+/* Status Indicators */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.status-pill .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+.status-pill.active { background-color: #ecfdf5; color: #047857; }
+.status-pill.active .dot { background-color: #10b981; }
+.status-pill.approaching { background-color: #fffbeb; color: #b45309; }
+.status-pill.approaching .dot { background-color: #f59e0b; }
+.status-pill.full { background-color: #fef2f2; color: #b91c1c; }
+.status-pill.full .dot { background-color: #ef4444; }
+.status-pill.closed { background-color: #f1f5f9; color: #475569; }
+.status-pill.closed .dot { background-color: #64748b; }
+
+/* Buttons */
+.btn-primary-custom {
+  background-color: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+  color: #fff;
+  font-weight: 500;
+}
+.btn-primary-custom:hover {
+  background-color: #0369a1;
+  border-color: #0369a1;
+  color: #fff;
+}
+.btn-teal {
+  background-color: var(--accent-teal);
+  border-color: var(--accent-teal);
+  color: #fff;
+}
+.btn-teal:hover {
+  background-color: #0f766e;
+  color: #fff;
+}
+
+/* Map Container */
+#map {
+  height: 580px;
+  width: 100%;
+  border-radius: 8px;
+  z-index: 1;
+}
+
+/* Tables */
+.table thead th {
+  background-color: #f8fafc;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  font-weight: 600;
+  border-bottom: 2px solid var(--border-color);
+}
+.table td {
+  vertical-align: middle;
+  font-size: 0.88rem;
+}
+
+/* Recommendation Match Cards */
+.match-card {
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  margin-bottom: 1rem;
+  transition: all 0.2s ease;
+}
+.match-card.rank-1 {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 1px #0284c7, 0 4px 12px rgba(2, 132, 199, 0.12);
+}
+.match-score-badge {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: #fff;
+}
+
+/* Alerts box */
+.alert-banner {
+  border-left: 4px solid;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Footer */
+footer {
+  margin-top: auto;
+  background-color: var(--primary-navy);
+  color: #94a3b8;
+  font-size: 0.82rem;
+  padding: 1.25rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}

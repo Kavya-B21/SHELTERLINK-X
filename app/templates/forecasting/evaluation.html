@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}Machine Learning Model Evaluation & Benchmark — SHELTERLINK X{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-4">
+  <div class="col-md-7 mb-3 mb-md-0">
+    <h2 class="fw-bold mb-1"><i class="bi bi-clipboard2-data text-primary me-2"></i> Machine Learning Model Evaluation</h2>
+    <p class="text-muted small mb-0">Empirical validation of Random Forest Regressor vs Historical Baseline using time-aware chronological evaluation</p>
+  </div>
+  <div class="col-md-5">
+    <div class="d-flex flex-wrap gap-2 justify-content-md-end align-items-center">
+      <div class="btn-group btn-group-sm" role="group">
+        <a href="{{ url_for('forecasting.evaluate', horizon=1) }}" class="btn {% if horizon_hours == 1 %}btn-primary{% else %}btn-outline-secondary{% endif %}">1h Horizon</a>
+        <a href="{{ url_for('forecasting.evaluate', horizon=3) }}" class="btn {% if horizon_hours == 3 %}btn-primary{% else %}btn-outline-secondary{% endif %}">3h Horizon</a>
+        <a href="{{ url_for('forecasting.evaluate', horizon=6) }}" class="btn {% if horizon_hours == 6 %}btn-primary{% else %}btn-outline-secondary{% endif %}">6h Horizon</a>
+        <a href="{{ url_for('forecasting.evaluate', horizon=12) }}" class="btn {% if horizon_hours == 12 %}btn-primary{% else %}btn-outline-secondary{% endif %}">12h Horizon</a>
+      </div>
+      <a href="{{ url_for('forecasting.index', horizon=horizon_hours) }}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Forecast Radar
+      </a>
+    </div>
+  </div>
+</div>
+
+{% if eval_result.status == 'insufficient_data' %}
+<div class="alert alert-warning shadow-sm p-4" role="alert">
+  <h5 class="fw-bold"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i> Insufficient Telemetry for Statistical Evaluation</h5>
+  <p class="mb-0">{{ eval_result.message }}</p>
+  <p class="small text-muted mt-2">
+    Please seed the demonstration telemetry or ingest a historical CSV via the Data Pipeline to train the Scikit-Learn regression models.
+  </p>
+</div>
+{% else %}
+
+<!-- Train/Test Split Overview Ribbon -->
+<div class="card shadow-sm border-0 mb-4 bg-light">
+  <div class="card-body p-3">
+    <div class="row g-3 align-items-center text-center text-md-start small">
+      <div class="col-md-3">
+        <span class="text-muted d-block">Split Strategy:</span>
+        <strong class="text-dark"><i class="bi bi-clock-history text-primary me-1"></i> Chronological (Time-Aware)</strong>
+      </div>
+      <div class="col-md-3">
+        <span class="text-muted d-block">Training Dataset (80% Past):</span>
+        <strong class="text-dark">{{ eval_result.train_samples }} Observations</strong>
+      </div>
+      <div class="col-md-3">
+        <span class="text-muted d-block">Evaluation Testset (20% Future):</span>
+        <strong class="text-dark">{{ eval_result.test_samples }} Observations</strong>
+      </div>
+      <div class="col-md-3 text-md-end">
+        <span class="badge bg-success-subtle text-success p-2">Total Samples: {{ eval_result.total_samples }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Evaluation Metric Cards Comparison -->
+<div class="row g-3 mb-4">
+  <!-- Random Forest Model Card -->
+  <div class="col-12 col-md-6">
+    <div class="card shadow-sm border-0 border-top border-4 border-primary h-100">
+      <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-cpu-fill text-primary me-2"></i> {{ eval_result.model_name }}</span>
+        <span class="badge bg-primary">Candidate Model</span>
+      </div>
+      <div class="card-body p-4">
+        <div class="row g-3 text-center mb-3">
+          <div class="col-4">
+            <div class="p-3 bg-light rounded">
+              <span class="small text-muted fw-semibold d-block">MAE</span>
+              <strong class="fs-3 text-primary">{{ eval_result.metrics_rf.mae }}</strong>
+              <div class="small text-muted">Mean Abs Error</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-3 bg-light rounded">
+              <span class="small text-muted fw-semibold d-block">RMSE</span>
+              <strong class="fs-3 text-primary">{{ eval_result.metrics_rf.rmse }}</strong>
+              <div class="small text-muted">Root Mean Sq Err</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-3 bg-light rounded">
+              <span class="small text-muted fw-semibold d-block">R² SCORE</span>
+              <strong class="fs-3 text-primary">{{ eval_result.metrics_rf.r2 }}</strong>
+              <div class="small text-muted">Variance Explained</div>
+            </div>
+          </div>
+        </div>
+        <div class="alert alert-success-subtle text-success small mb-0 p-2">
+          <i class="bi bi-graph-up-arrow me-1"></i>
+          <strong>{{ eval_result.improvement_over_baseline_pct }}% Improvement</strong> in MAE relative to historical naive baseline.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Naive Baseline Comparison Card -->
+  <div class="col-12 col-md-6">
+    <div class="card shadow-sm border-0 border-top border-4 border-secondary h-100">
+      <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-bar-chart text-secondary me-2"></i> {{ eval_result.baseline_name }}</span>
+        <span class="badge bg-secondary">Control Baseline</span>
+      </div>
+      <div class="card-body p-4">
+        <div class="row g-3 text-center mb-3">
+          <div class="col-4">
+            <div class="p-3 bg-light rounded">
+              <span class="small text-muted fw-semibold d-block">MAE</span>
+              <strong class="fs-3 text-secondary">{{ eval_result.metrics_baseline.mae }}</strong>
+              <div class="small text-muted">Mean Abs Error</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-3 bg-light rounded">
+              <span class="small text-muted fw-semibold d-block">RMSE</span>
+              <strong class="fs-3 text-secondary">{{ eval_result.metrics_baseline.rmse }}</strong>
+              <div class="small text-muted">Root Mean Sq Err</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-3 bg-light rounded">
+              <span class="small text-muted fw-semibold d-block">R² SCORE</span>
+              <strong class="fs-3 text-secondary">{{ eval_result.metrics_baseline.r2 }}</strong>
+              <div class="small text-muted">Variance Explained</div>
+            </div>
+          </div>
+        </div>
+        <div class="alert alert-light border small mb-0 p-2 text-muted">
+          <i class="bi bi-info-circle me-1"></i>
+          Predicts future influx using historical average demand for similar operational shifts.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Feature Importances & Residuals Sample -->
+<div class="row g-3 mb-4">
+  <!-- Feature Importance Ranking -->
+  <div class="col-12 col-lg-5">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-header bg-white fw-bold">
+        <i class="bi bi-list-stars text-primary me-2"></i> Random Forest Feature Importances
+      </div>
+      <div class="card-body p-3">
+        <p class="small text-muted mb-3">Normalized Gini importance breakdown across engineered telemetry features:</p>
+        {% for feat in eval_result.feature_importances %}
+        <div class="mb-2">
+          <div class="d-flex justify-content-between align-items-center small mb-1">
+            <span class="fw-semibold text-dark">{{ feat.feature }}</span>
+            <span class="text-muted fw-bold">{{ feat.importance }}%</span>
+          </div>
+          <div class="progress" style="height: 6px;">
+            <div class="progress-bar bg-primary" style="width: {{ feat.importance }}%;"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Sample Test Residuals Table -->
+  <div class="col-12 col-lg-7">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-table text-primary me-2"></i> Test Set Predictions vs Ground Truth (Last 15 Samples)</span>
+        <span class="badge bg-light text-secondary border">Unseen Testset</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover align-middle mb-0 small">
+            <thead class="table-light">
+              <tr>
+                <th>Actual Inflow (Ground Truth)</th>
+                <th>Random Forest Prediction</th>
+                <th>Baseline Prediction</th>
+                <th>RF Error (Residual)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in eval_result.test_samples %}
+              <tr>
+                <td class="fw-bold">{{ s.actual|int }} survivors</td>
+                <td class="text-primary fw-bold">{{ s.predicted_rf }}</td>
+                <td class="text-muted">{{ s.predicted_baseline }}</td>
+                <td>
+                  <span class="badge {% if s.error|abs <= 2 %}bg-success-subtle text-success{% elif s.error|abs <= 5 %}bg-warning-subtle text-warning-emphasis{% else %}bg-danger-subtle text-danger{% endif %}">
+                    {{ s.error }}
+                  </span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Engineering Disclaimer Notice -->
+<div class="card shadow-sm border-0 bg-light p-3">
+  <div class="d-flex align-items-center">
+    <i class="bi bi-shield-exclamation text-primary fs-3 me-3"></i>
+    <div class="small text-muted">
+      <strong class="text-dark">B.Tech CSE Capstone Methodological Note:</strong>
+      All performance metrics are computed dynamically on an unseen time-aware chronological test split.
+      Synthetic disaster telemetry provides a safe environment for modeling storm arrival spikes and diurnal fluctuations without compromising survivor privacy. In actual emergency deployment, models must be continually retrained on verified on-ground incident logs.
+    </div>
+  </div>
+</div>
+
+{% endif %}
+{% endblock %}

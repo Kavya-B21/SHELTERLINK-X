@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Request Dossier: {{ request_item.household_alias }} — SHELTERLINK X{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <div>
+          <span class="badge bg-secondary font-monospace me-2">{{ request_item.request_code }}</span>
+          <span class="badge 
+            {% if request_item.status == 'Allocation Confirmed' %}bg-success
+            {% elif request_item.status == 'Recommended' %}bg-info text-dark
+            {% elif request_item.status == 'Under Review' %}bg-warning text-dark
+            {% elif request_item.status == 'Cancelled' %}bg-secondary
+            {% else %}bg-light text-dark border{% endif %}">
+            {{ request_item.status }}
+          </span>
+        </div>
+        <a href="{{ url_for('requests.index') }}" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-arrow-left me-1"></i> Back to Requests
+        </a>
+      </div>
+
+      <div class="card-body p-4">
+        <h3 class="fw-bold mb-1 text-dark">{{ request_item.household_alias }}</h3>
+        <p class="text-muted small mb-3">Origin Sector: <strong>{{ request_item.affected_area }}</strong> • Created: {{ request_item.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</p>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <div class="p-3 bg-light rounded text-center">
+              <span class="small text-muted d-block">Household Size</span>
+              <strong class="fs-3 text-dark">{{ request_item.people_count }} Persons</strong>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-3 bg-light rounded text-center">
+              <span class="small text-muted d-block">Urgency Level</span>
+              <strong class="fs-4 
+                {% if request_item.priority_level == 'Urgent' %}text-danger
+                {% elif request_item.priority_level == 'High' %}text-warning
+                {% else %}text-secondary{% endif %}">
+                {{ request_item.priority_level }}
+              </strong>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-3 bg-light rounded text-center">
+              <span class="small text-muted d-block">Accommodation Type</span>
+              <strong class="fs-5 text-dark">{{ request_item.accommodation_type }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <h6 class="fw-bold text-dark mb-2">Mandatory Facility Requirements:</h6>
+        <div class="d-flex flex-wrap gap-2 mb-4">
+          {% if request_item.requires_accessibility %}
+          <span class="badge bg-primary p-2">♿ Wheelchair Ramp Access Required</span>
+          {% endif %}
+          {% if request_item.requires_medical %}
+          <span class="badge bg-danger p-2">🏥 Emergency Medical Support Required</span>
+          {% endif %}
+          {% if request_item.requires_family_room %}
+          <span class="badge bg-success p-2">👨‍👩‍👧 Contiguous Family Quarters Required</span>
+          {% endif %}
+          {% if not request_item.requires_accessibility and not request_item.requires_medical and not request_item.requires_family_room %}
+          <span class="text-muted small">No specialized medical or accessibility constraints specified.</span>
+          {% endif %}
+        </div>
+
+        {% if request_item.notes %}
+        <div class="p-3 bg-light border rounded mb-4">
+          <span class="small fw-semibold text-secondary d-block mb-1">Intake Notes:</span>
+          <p class="small mb-0 text-dark">{{ request_item.notes }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Confirmed Placement Details -->
+        {% if request_item.assigned_shelter %}
+        <div class="card border-success bg-success-subtle p-3 mb-4">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="fw-bold text-success mb-1">
+                <i class="bi bi-check-circle-fill me-1"></i> Assigned to {{ request_item.assigned_shelter.name }}
+              </h5>
+              <p class="small text-muted mb-0">
+                Shelter Code: {{ request_item.assigned_shelter.shelter_code }} • Sector: {{ request_item.assigned_shelter.location_name }}
+              </p>
+            </div>
+            <a href="{{ url_for('shelters.detail', shelter_id=request_item.assigned_shelter.id) }}" class="btn btn-sm btn-success">
+              Inspect Shelter
+            </a>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+          {% if request_item.status not in ('Allocation Confirmed', 'Checked In', 'Completed', 'Cancelled') %}
+          <a href="{{ url_for('allocation.recommend', request_id=request_item.id) }}" class="btn btn-teal">
+            <i class="bi bi-magic me-1"></i> Compute Smart Shelter Matches
+          </a>
+          <form method="POST" action="{{ url_for('requests.cancel', request_id=request_item.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Cancel this shelter request?')">
+              Cancel Request
+            </button>
+          </form>
+          {% else %}
+          <span class="text-muted small">Status: {{ request_item.status }}</span>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

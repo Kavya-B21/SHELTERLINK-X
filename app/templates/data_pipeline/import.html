@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Data Pipeline CSV Ingestion — SHELTERLINK X{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-4">
+  <div class="col-md-7 mb-3 mb-md-0">
+    <h2 class="fw-bold mb-1"><i class="bi bi-database-gear text-primary me-2"></i> Data Engineering Pipeline</h2>
+    <p class="text-muted small mb-0">Automated ingestion, schema validation, duplicate detection, and invalid-row reporting</p>
+  </div>
+  <div class="col-md-5 text-md-end">
+    <a href="{{ url_for('data_pipeline.quality') }}" class="btn btn-outline-primary">
+      <i class="bi bi-shield-check me-1"></i> Data Quality Audit
+    </a>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Upload Form Card -->
+  <div class="col-12 col-lg-5">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-header bg-white fw-bold">
+        <i class="bi bi-file-earmark-arrow-up text-primary me-2"></i> Ingest Telemetry Dataset
+      </div>
+      <div class="card-body p-4">
+        <form method="POST" enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Dataset Pipeline Type</label>
+            <select name="import_type" class="form-select" id="importTypeSelect">
+              <option value="shelters" {% if import_type == 'shelters' %}selected{% endif %}>Shelter Facilities & Capacity Inventory</option>
+              <option value="history" {% if import_type == 'history' %}selected{% endif %}>Historical Occupancy & Influx Telemetry</option>
+            </select>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Select CSV File</label>
+            <input type="file" name="csv_file" class="form-control" accept=".csv" required>
+            <div class="form-text small">Standard UTF-8 comma-separated value file (Max 10MB).</div>
+          </div>
+
+          <button type="submit" class="btn btn-primary-custom w-100 py-2 fw-semibold">
+            <i class="bi bi-gear-wide-connected me-1"></i> Validate & Ingest Dataset
+          </button>
+        </form>
+
+        <hr class="my-4">
+
+        <!-- Download Template Links -->
+        <div>
+          <span class="small fw-semibold text-secondary d-block mb-2">Download Schema-Compliant Templates:</span>
+          <div class="d-flex flex-column gap-2">
+            <a href="{{ url_for('data_pipeline.download_template', template_type='shelters') }}" class="btn btn-sm btn-outline-secondary text-start">
+              <i class="bi bi-filetype-csv text-primary me-1"></i> Shelters Inventory Template (.csv)
+            </a>
+            <a href="{{ url_for('data_pipeline.download_template', template_type='history') }}" class="btn btn-sm btn-outline-secondary text-start">
+              <i class="bi bi-filetype-csv text-primary me-1"></i> Telemetry Observations Template (.csv)
+            </a>
+            <a href="{{ url_for('data_pipeline.download_template', template_type='requests') }}" class="btn btn-sm btn-outline-secondary text-start">
+              <i class="bi bi-filetype-csv text-primary me-1"></i> Survivor Requests Template (.csv)
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pipeline Requirements & Schema Rules -->
+  <div class="col-12 col-lg-7">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-header bg-white fw-bold">
+        <i class="bi bi-check2-all text-success me-2"></i> Data Pipeline Validation Engine Rules
+      </div>
+      <div class="card-body p-4">
+        <ul class="list-group list-group-flush small">
+          <li class="list-group-item d-flex gap-2">
+            <i class="bi bi-shield-check text-success fs-5"></i>
+            <div>
+              <strong>Strict Schema Verification:</strong> Confirms required column headers exist before attempting row processing.
+            </div>
+          </li>
+          <li class="list-group-item d-flex gap-2">
+            <i class="bi bi-shield-check text-success fs-5"></i>
+            <div>
+              <strong>Duplicate Detection:</strong> Flags duplicate codes in the uploaded batch and matches against existing records for idempotent upserts.
+            </div>
+          </li>
+          <li class="list-group-item d-flex gap-2">
+            <i class="bi bi-shield-check text-success fs-5"></i>
+            <div>
+              <strong>Numeric & Range Bounds:</strong> Rejects non-integers, negative occupancy, or total capacity &le; 0.
+            </div>
+          </li>
+          <li class="list-group-item d-flex gap-2">
+            <i class="bi bi-shield-check text-success fs-5"></i>
+            <div>
+              <strong>Capacity Consistency Constraint:</strong> Ensures current occupancy + reserved capacity does not exceed total facility limits.
+            </div>
+          </li>
+          <li class="list-group-item d-flex gap-2">
+            <i class="bi bi-shield-check text-success fs-5"></i>
+            <div>
+              <strong>Audit Logging:</strong> Every batch import event is committed to the immutable audit log with user attribution.
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detailed Validation Report (If Uploaded) -->
+{% if report %}
+<div class="card shadow-sm border-0 mb-4">
+  <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-file-earmark-medical text-primary me-2"></i> Ingestion Batch Report Summary</span>
+    <span class="badge {% if report.rejected_count == 0 %}bg-success{% else %}bg-warning text-dark{% endif %}">
+      Processed {{ report.total_rows }} Rows
+    </span>
+  </div>
+  <div class="card-body p-4">
+    <!-- Stat ribbon -->
+    <div class="row g-3 text-center mb-4">
+      <div class="col-3">
+        <div class="p-3 bg-light rounded">
+          <span class="small text-muted d-block">TOTAL ROWS</span>
+          <strong class="fs-3 text-dark">{{ report.total_rows }}</strong>
+        </div>
+      </div>
+      <div class="col-3">
+        <div class="p-3 bg-success-subtle rounded">
+          <span class="small text-success d-block">PROCESSED SUCCESSFULLY</span>
+          <strong class="fs-3 text-success">{{ report.success_count }}</strong>
+        </div>
+      </div>
+      <div class="col-3">
+        <div class="p-3 bg-danger-subtle rounded">
+          <span class="small text-danger d-block">REJECTED ROWS</span>
+          <strong class="fs-3 text-danger">{{ report.rejected_count }}</strong>
+        </div>
+      </div>
+      <div class="col-3">
+        <div class="p-3 bg-warning-subtle rounded">
+          <span class="small text-warning-emphasis d-block">DUPLICATES DETECTED</span>
+          <strong class="fs-3 text-warning-emphasis">{{ report.duplicate_count }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rejections Table -->
+    {% if report.rejections %}
+    <h6 class="fw-bold text-danger mb-2"><i class="bi bi-exclamation-octagon me-1"></i> Row-by-Row Rejection Diagnostics:</h6>
+    <div class="table-responsive mb-3">
+      <table class="table table-sm table-bordered align-middle small">
+        <thead class="table-danger">
+          <tr>
+            <th style="width: 80px;">Line #</th>
+            <th>Rejection Reason</th>
+            <th>Raw Row Payload</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rej in report.rejections %}
+          <tr>
+            <td class="fw-bold text-center">{{ rej.line }}</td>
+            <td class="text-danger fw-semibold">{{ rej.reason }}</td>
+            <td class="font-monospace text-muted">{{ rej.data }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    <!-- Quality Warnings -->
+    {% if report.quality_warnings %}
+    <div class="alert alert-warning small mb-0">
+      <strong><i class="bi bi-info-circle me-1"></i> Data Quality Warnings:</strong>
+      <ul class="mb-0 mt-1 ps-3">
+        {% for w in report.quality_warnings %}
+        <li>{{ w }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

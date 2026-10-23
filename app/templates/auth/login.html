@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In — SHELTERLINK X{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center py-5">
+  <div class="col-12 col-md-8 col-lg-5">
+    <div class="card shadow-lg border-0">
+      <div class="card-header bg-dark text-white text-center py-4 border-0" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+        <div class="mb-2">
+          <i class="bi bi-shield-shaded text-info" style="font-size: 3rem;"></i>
+        </div>
+        <h3 class="fw-bold mb-1 tracking-tight">SHELTERLINK <span class="badge bg-info text-dark">X</span></h3>
+        <p class="text-secondary small mb-0">Disaster Shelter Intelligence & Smart Allocation Platform</p>
+      </div>
+      
+      <div class="card-body p-4 p-md-5">
+        <form method="POST" action="{{ url_for('auth.login', next=request.args.get('next')) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold" for="username">Username</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="bi bi-person text-secondary"></i></span>
+              <input type="text" class="form-control" id="username" name="username" placeholder="e.g. coordinator" required autofocus>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold" for="password">Password</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="bi bi-key text-secondary"></i></span>
+              <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary-custom w-100 py-2 fw-semibold shadow-sm">
+            <i class="bi bi-box-arrow-in-right me-1"></i> Authenticate & Enter System
+          </button>
+        </form>
+
+        <hr class="my-4">
+
+        <!-- Demo Accounts Quick Fill Pill Buttons -->
+        <div class="text-center">
+          <p class="small text-muted fw-semibold mb-2">⚡ Quick Demonstration Role Fill:</p>
+          <div class="d-flex flex-wrap gap-2 justify-content-center">
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="fillCreds('admin', 'Admin@12345')">
+              <i class="bi bi-shield-lock me-1"></i> Administrator
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="fillCreds('coordinator', 'Coord@12345')">
+              <i class="bi bi-compass me-1"></i> Coordinator
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-warning text-dark" onclick="fillCreds('manager', 'Manager@12345')">
+              <i class="bi bi-building me-1"></i> Shelter Mgr
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="fillCreds('viewer', 'Viewer@12345')">
+              <i class="bi bi-eye me-1"></i> Read-Only Viewer
+            </button>
+          </div>
+        </div>
+
+      </div>
+      <div class="card-footer bg-light text-center py-3 border-top small text-muted">
+        <i class="bi bi-lock me-1"></i> Protected by Server-Side Role-Based Authorization & Audit Trail
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function fillCreds(u, p) {
+  document.getElementById('username').value = u;
+  document.getElementById('password').value = p;
+}
+</script>
+{% endblock %}

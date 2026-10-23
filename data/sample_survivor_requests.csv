@@ -1,0 +1,6 @@
+request_code,household_alias,people_count,affected_area,latitude,longitude,accommodation_type,requires_accessibility,requires_medical,requires_family_room,priority_level
+REQ-BATCH-001,Household Orion-1,3,North Coastal Sector,13.0845,80.2715,Family Unit,True,False,True,High
+REQ-BATCH-002,Household Pegasus-4,5,East River Basin,13.0515,80.2515,Family Unit,False,True,True,Urgent
+REQ-BATCH-003,Household Cygnus-2,2,Central Metro Sector,13.0610,80.2310,Standard,False,False,False,Standard
+REQ-BATCH-004,Household Andromeda-8,7,Suburban Highland Area,12.9810,80.1510,Family Unit,True,True,True,Urgent
+REQ-BATCH-005,Household Lyra-3,1,Harbor Port District,13.0990,80.2890,Standard,False,False,False,Standard

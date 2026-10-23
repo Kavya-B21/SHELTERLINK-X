@@ -1,0 +1,6 @@
+shelter_code,name,location_name,latitude,longitude,total_capacity,current_occupancy,reserved_capacity,status,has_accessibility_ramps,has_drinking_water,has_food_supply,has_medical_support,has_sanitation,has_family_rooms,has_power_backup
+SHELTER-008,Marina Coastal Relief Enclave,North Coastal Sector,13.0860,80.2740,220,95,10,Active,True,True,True,True,True,True,True
+SHELTER-009,Adyar River Sports Pavilion,East River Basin,13.0480,80.2530,160,140,10,Approaching Capacity,False,True,True,False,True,False,True
+SHELTER-010,Central Railway Indoor Complex,Central Metro Sector,13.0640,80.2350,350,110,20,Active,True,True,True,True,True,True,True
+SHELTER-011,South Hillside Community Hall,South Hillside Zone,13.0030,80.2080,90,90,0,Full,False,True,True,False,True,True,False
+SHELTER-012,Highland Scout Base Camp,Suburban Highland Area,12.9780,80.1490,140,50,5,Active,True,True,True,False,True,True,True

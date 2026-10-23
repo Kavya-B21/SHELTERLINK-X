@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}500 Internal Error — SHELTERLINK X{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center text-center py-5">
+  <div class="col-md-6">
+    <div class="display-1 fw-bold text-danger">500</div>
+    <h3 class="fw-bold text-dark mb-3">Internal Operational Server Error</h3>
+    <p class="text-muted mb-4">
+      An unexpected internal exception occurred while processing telemetry. Detailed diagnostic trace has been captured in secure system logs without public exposure.
+    </p>
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary-custom">
+      <i class="bi bi-house me-1"></i> Return to Operations Dashboard
+    </a>
+  </div>
+</div>
+{% endblock %}

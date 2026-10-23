@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Operational Reports & CSV Exports — SHELTERLINK X{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-4">
+  <div class="col-md-8">
+    <h2 class="fw-bold mb-1"><i class="bi bi-file-earmark-text text-primary me-2"></i> Operational Intelligence Reports & Exports</h2>
+    <p class="text-muted small mb-0">Generate auditable CSV dataset exports for emergency relief coordination, agency review, and historical analysis</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Report Card 1: Shelters Inventory -->
+  <div class="col-12 col-md-6">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body p-4 d-flex flex-column">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="p-3 bg-primary-subtle text-primary rounded-3 fs-3">
+            <i class="bi bi-buildings"></i>
+          </div>
+          <div>
+            <h5 class="fw-bold mb-1 text-dark">Shelters & Capacity Inventory</h5>
+            <span class="badge bg-light text-secondary border">Active Facilities & Coordinates</span>
+          </div>
+        </div>
+        <p class="small text-muted mb-4 flex-grow-1">
+          Export full shelter registry including code, name, sector, verified total capacity, current occupancy, reserved capacity, available headroom, operational status, and facility capabilities.
+        </p>
+        <a href="{{ url_for('reports.export_csv', report_type='shelters') }}" class="btn btn-primary-custom w-100">
+          <i class="bi bi-download me-1"></i> Export Shelters CSV
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Card 2: Survivor Requests -->
+  <div class="col-12 col-md-6">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body p-4 d-flex flex-column">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="p-3 bg-info-subtle text-info-emphasis rounded-3 fs-3">
+            <i class="bi bi-people"></i>
+          </div>
+          <div>
+            <h5 class="fw-bold mb-1 text-dark">Survivor Requests & Allocations</h5>
+            <span class="badge bg-light text-secondary border">Intake & Placement Telemetry</span>
+          </div>
+        </div>
+        <p class="small text-muted mb-4 flex-grow-1">
+          Export anonymized survivor household requests, family sizes, accessibility needs, priority classifications, assigned emergency shelters, and placement confirmation timestamps.
+        </p>
+        <a href="{{ url_for('reports.export_csv', report_type='requests') }}" class="btn btn-teal w-100">
+          <i class="bi bi-download me-1"></i> Export Requests CSV
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Card 3: Historical Telemetry -->
+  <div class="col-12 col-md-6">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body p-4 d-flex flex-column">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="p-3 bg-warning-subtle text-warning-emphasis rounded-3 fs-3">
+            <i class="bi bi-clock-history"></i>
+          </div>
+          <div>
+            <h5 class="fw-bold mb-1 text-dark">Historical Occupancy & Influx Telemetry</h5>
+            <span class="badge bg-light text-secondary border">Time-Series Training Data</span>
+          </div>
+        </div>
+        <p class="small text-muted mb-4 flex-grow-1">
+          Export complete time-series observations including hourly incoming requests, departures, recorded occupancy, and operational statuses used for Scikit-Learn machine learning forecasting.
+        </p>
+        <a href="{{ url_for('reports.export_csv', report_type='history') }}" class="btn btn-outline-secondary w-100">
+          <i class="bi bi-download me-1"></i> Export Telemetry CSV
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Card 4: Audit Logs -->
+  {% if current_user.can_view_audit_logs() %}
+  <div class="col-12 col-md-6">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body p-4 d-flex flex-column">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="p-3 bg-danger-subtle text-danger rounded-3 fs-3">
+            <i class="bi bi-journal-text"></i>
+          </div>
+          <div>
+            <h5 class="fw-bold mb-1 text-dark">Security & Compliance Audit Trail</h5>
+            <span class="badge bg-danger-subtle text-danger">Administrator Access Only</span>
+          </div>
+        </div>
+        <p class="small text-muted mb-4 flex-grow-1">
+          Export comprehensive system audit log capturing logins, shelter updates, capacity overrides, allocation confirmations, CSV imports, and user authorization events with IP addresses.
+        </p>
+        <a href="{{ url_for('reports.export_csv', report_type='audit') }}" class="btn btn-outline-danger w-100">
+          <i class="bi bi-download me-1"></i> Export Audit Logs CSV
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

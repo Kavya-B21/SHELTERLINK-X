@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Survivor Shelter Requests Intake — SHELTERLINK X{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-4">
+  <div class="col-md-7 mb-3 mb-md-0">
+    <h2 class="fw-bold mb-1"><i class="bi bi-people text-primary me-2"></i> Survivor & Household Requests</h2>
+    <p class="text-muted small mb-0">Displaced household registry, accommodation requirements, and smart matching queue</p>
+  </div>
+  <div class="col-md-5 text-md-end">
+    <a href="{{ url_for('requests.create') }}" class="btn btn-primary-custom">
+      <i class="bi bi-person-plus me-1"></i> Register New Request
+    </a>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="card shadow-sm border-0 mb-4">
+  <div class="card-body p-3">
+    <form method="GET" action="{{ url_for('requests.index') }}" class="row g-2 align-items-center">
+      <div class="col-12 col-md-4">
+        <select name="status" class="form-select form-select-sm">
+          <option value="">All Intake Statuses</option>
+          <option value="Submitted" {% if selected_status == 'Submitted' %}selected{% endif %}>Submitted (Unmatched)</option>
+          <option value="Under Review" {% if selected_status == 'Under Review' %}selected{% endif %}>Under Review</option>
+          <option value="Recommended" {% if selected_status == 'Recommended' %}selected{% endif %}>Recommended</option>
+          <option value="Allocation Confirmed" {% if selected_status == 'Allocation Confirmed' %}selected{% endif %}>Allocation Confirmed</option>
+          <option value="Checked In" {% if selected_status == 'Checked In' %}selected{% endif %}>Checked In</option>
+          <option value="Completed" {% if selected_status == 'Completed' %}selected{% endif %}>Completed</option>
+          <option value="Cancelled" {% if selected_status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+        </select>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <select name="area" class="form-select form-select-sm">
+          <option value="">All Affected Areas</option>
+          {% for a in areas %}
+          <option value="{{ a }}" {% if selected_area == a %}selected{% endif %}>{{ a }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <select name="priority" class="form-select form-select-sm">
+          <option value="">All Priorities</option>
+          <option value="Urgent" {% if selected_priority == 'Urgent' %}selected{% endif %}>Urgent Priority</option>
+          <option value="High" {% if selected_priority == 'High' %}selected{% endif %}>High Priority</option>
+          <option value="Standard" {% if selected_priority == 'Standard' %}selected{% endif %}>Standard Priority</option>
+        </select>
+      </div>
+
+      <div class="col-12 col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-sm btn-primary-custom w-100">Filter</button>
+        <a href="{{ url_for('requests.index') }}" class="btn btn-sm btn-outline-secondary" title="Reset">
+          <i class="bi bi-x-lg"></i>
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Requests Table -->
+<div class="card shadow-sm border-0">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Request ID & Alias</th>
+            <th>Household Size</th>
+            <th>Affected Area</th>
+            <th>Mandatory Needs</th>
+            <th>Priority</th>
+            <th>Current Status</th>
+            <th>Assigned Shelter</th>
+            <th>Submission Date</th>
+            <th class="text-end">Matching Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in requests %}
+          <tr>
+            <td>
+              <div class="fw-bold text-dark">{{ r.household_alias }}</div>
+              <div class="small text-muted font-monospace">{{ r.request_code }}</div>
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border fs-6">
+                <i class="bi bi-people me-1"></i> {{ r.people_count }} pax
+              </span>
+            </td>
+            <td>
+              <span class="small">{{ r.affected_area }}</span>
+            </td>
+            <td>
+              <div class="d-flex gap-1">
+                {% if r.requires_accessibility %}
+                <span class="badge bg-primary-subtle text-primary" title="Wheelchair Ramp Required">♿ Access</span>
+                {% endif %}
+                {% if r.requires_medical %}
+                <span class="badge bg-danger-subtle text-danger" title="Medical Support Required">🏥 Medical</span>
+                {% endif %}
+                {% if r.requires_family_room %}
+                <span class="badge bg-success-subtle text-success" title="Family Room Required">👨‍👩‍👧 Family Unit</span>
+                {% endif %}
+                {% if not r.requires_accessibility and not r.requires_medical and not r.requires_family_room %}
+                <span class="text-muted small">Standard intake</span>
+                {% endif %}
+              </div>
+            </td>
+            <td>
+              <span class="badge 
+                {% if r.priority_level == 'Urgent' %}bg-danger
+                {% elif r.priority_level == 'High' %}bg-warning text-dark
+                {% else %}bg-secondary{% endif %}">
+                {{ r.priority_level }}
+              </span>
+            </td>
+            <td>
+              <span class="badge 
+                {% if r.status == 'Allocation Confirmed' or r.status == 'Checked In' %}bg-success
+                {% elif r.status == 'Recommended' %}bg-info text-dark
+                {% elif r.status == 'Under Review' %}bg-warning text-dark
+                {% elif r.status == 'Cancelled' %}bg-secondary
+                {% else %}bg-light text-dark border{% endif %}">
+                {{ r.status }}
+              </span>
+            </td>
+            <td>
+              {% if r.assigned_shelter %}
+              <a href="{{ url_for('shelters.detail', shelter_id=r.assigned_shelter.id) }}" class="small fw-semibold text-decoration-none">
+                <i class="bi bi-building-check text-success me-1"></i> {{ r.assigned_shelter.name }}
+              </a>
+              {% else %}
+              <span class="text-muted small fst-italic">Pending Match</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="small text-muted">{{ r.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+            </td>
+            <td class="text-end">
+              {% if r.status not in ('Allocation Confirmed', 'Checked In', 'Completed', 'Cancelled') %}
+              <a href="{{ url_for('allocation.recommend', request_id=r.id) }}" class="btn btn-sm btn-teal shadow-sm">
+                <i class="bi bi-magic me-1"></i> Smart Match
+              </a>
+              {% else %}
+              <a href="{{ url_for('requests.detail', request_id=r.id) }}" class="btn btn-sm btn-outline-secondary">
+                View Dossier
+              </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="9" class="text-center py-5 text-muted">
+              <i class="bi bi-inbox fs-1 mb-2 d-block text-secondary"></i>
+              No requests found matching current filter parameters.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

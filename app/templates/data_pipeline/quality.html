@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Data Quality & Integrity Audit — SHELTERLINK X{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-4">
+  <div class="col-md-7 mb-3 mb-md-0">
+    <h2 class="fw-bold mb-1"><i class="bi bi-shield-check text-success me-2"></i> Data Quality & Telemetry Health</h2>
+    <p class="text-muted small mb-0">Continuous validation checks for missing coordinates, occupancy consistency, and telemetry anomalies</p>
+  </div>
+  <div class="col-md-5 text-md-end">
+    <a href="{{ url_for('data_pipeline.import_data') }}" class="btn btn-primary-custom">
+      <i class="bi bi-file-earmark-arrow-up me-1"></i> Ingest Telemetry CSV
+    </a>
+  </div>
+</div>
+
+<!-- Quality Score Ribbon -->
+<div class="card shadow-sm border-0 mb-4">
+  <div class="card-body p-4">
+    <div class="row align-items-center">
+      <div class="col-md-3 text-center mb-3 mb-md-0 border-end-md">
+        <div class="small text-muted fw-semibold mb-1">COMPOSITE QUALITY SCORE</div>
+        <div class="fs-1 fw-bold text-success">{{ summary.overall_quality_score }} <span class="fs-4 text-muted fw-normal">/ 100</span></div>
+        <span class="badge bg-success-subtle text-success">High Integrity</span>
+      </div>
+      <div class="col-md-9 ps-md-4">
+        <h5 class="fw-bold text-dark mb-1">Operational Data Cleanness Status</h5>
+        <p class="small text-muted mb-2">
+          The data engineering ingestion pipeline performs multi-stage sanitization, coordinate bounds verification, and atomic capacity validation across {{ summary.total_shelters }} shelters and {{ summary.telemetry_observation_count }} telemetry records.
+        </p>
+        <div class="progress" style="height: 8px;">
+          <div class="progress-bar bg-success" style="width: {{ summary.overall_quality_score }}%;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quality Metrics Grid -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-md-4">
+    <div class="card shadow-sm border-0 p-3 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="small text-muted fw-semibold">COORDINATE COMPLETENESS</span>
+        <i class="bi bi-geo-alt text-primary fs-4"></i>
+      </div>
+      <div class="fs-3 fw-bold text-dark">{{ summary.missing_coords_count }} <span class="fs-6 text-muted fw-normal">missing ({{ summary.missing_coords_rate }}%)</span></div>
+      <p class="small text-muted mt-2 mb-0">
+        Shelters without explicit lat/lon utilize automated sector centroid centroids as fail-safe fallback.
+      </p>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-4">
+    <div class="card shadow-sm border-0 p-3 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="small text-muted fw-semibold">CAPACITY INCONSISTENCY CHECK</span>
+        <i class="bi bi-shield-lock text-success fs-4"></i>
+      </div>
+      <div class="fs-3 fw-bold {% if summary.overbooked_inconsistencies == 0 %}text-success{% else %}text-danger{% endif %}">
+        {{ summary.overbooked_inconsistencies }} <span class="fs-6 text-muted fw-normal">Violations</span>
+      </div>
+      <p class="small text-muted mt-2 mb-0">
+        Verifies that Occupancy + Reserved never exceeds Total Facility Capacity without authorized override.
+      </p>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-4">
+    <div class="card shadow-sm border-0 p-3 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="small text-muted fw-semibold">INTAKE QUEUE LATENCY</span>
+        <i class="bi bi-hourglass-split text-warning fs-4"></i>
+      </div>
+      <div class="fs-3 fw-bold text-dark">
+        {{ summary.unassigned_requests_count }} <span class="fs-6 text-muted fw-normal">Unassigned</span>
+      </div>
+      <p class="small text-muted mt-2 mb-0">
+        Contains <strong class="text-danger">{{ summary.urgent_unassigned_count }} urgent requests</strong> awaiting coordinator confirmation.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
